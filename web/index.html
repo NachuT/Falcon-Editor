@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Falcon Editor - Build Smarter, Faster, Better</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            color: #fff;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .card-3d {
+            perspective: 1000px;
+        }
+
+        .card-3d-inner {
+            transform-style: preserve-3d;
+            transition: none;
+            will-change: transform;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .cursor-blink {
+            animation: pulse 1s infinite;
+        }
+
+        /* Make the hero area fill the viewport and center the content */
+        .wave-container {
+            position: relative;
+            overflow: hidden;
+            min-height: 100vh;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        /* Canvas covers the hero area and uses CSS sizing; JS will set backing buffer for DPR */
+        #wave-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            display: block;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            padding: 1.5rem;
+            box-sizing: border-box;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="min-h-screen bg-black text-white">
+    <!-- Hero Section (full-width) -->
+    <div class="wave-container text-center">
+        <canvas id="wave-canvas" width="1920" height="600"></canvas>
+        <div class="hero-content">
+            <div id="title" class="text-4xl md:text-6xl font-bold mb-8 flex flex-wrap justify-center gap-3"></div>
+
+            <p class="text-green-400 text-sm sm:text-base mb-8">
+                The next generation code editor powered by FPGA acceleration
+            </p>
+
+            <div class="text-4xl md:text-6xl font-bold mb-8">
+                <span class="text-white">Build </span>
+                <span id="rotating-text" class="text-green-400"></span>
+                <span class="cursor-blink">|</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-6">
+        <!-- Download Button -->
+        <div class="flex justify-center mb-20 mt-8">
+            <button class="group relative px-8 py-4 bg-green-500 hover:bg-green-400 rounded-lg text-lg font-bold text-black transition-all duration-300 transform hover:scale-105 shadow-lg shadow-green-500/50">
+                <span class="flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    <span>Download Now</span>
+                </span>
+            </button>
+        </div>
+
+        <!-- Feature Showcase Images -->
+        <div class="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto mb-20">
+            <div class="relative overflow-hidden rounded-xl border-2 border-green-400/30 hover:border-green-400 transition-colors duration-300">
+                <img src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=800&q=80" alt="Code Editor" class="w-full h-64 object-cover">
+                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                    <p class="text-white font-bold">Modern Code Editor</p>
+                    <p class="text-green-400 text-sm">Syntax highlighting & IntelliSense</p>
+                </div>
+            </div>
+            <div class="relative overflow-hidden rounded-xl border-2 border-green-400/30 hover:border-green-400 transition-colors duration-300">
+                <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&q=80" alt="Cloud Infrastructure" class="w-full h-64 object-cover">
+                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                    <p class="text-white font-bold">Cloud Infrastructure</p>
+                    <p class="text-green-400 text-sm">Scale on demand</p>
+                </div>
+            </div>
+            <div class="relative overflow-hidden rounded-xl border-2 border-green-400/30 hover:border-green-400 transition-colors duration-300">
+                <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80" alt="Team Collaboration" class="w-full h-64 object-cover">
+                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                    <p class="text-white font-bold">Team Collaboration</p>
+                    <p class="text-green-400 text-sm">Real-time editing</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature Cards -->
+        <div class="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto mb-20">
+            <div class="card-3d" data-card="1">
+                <div class="card-3d-inner bg-black border-green-400/30 hover:border-green-400 border-2 w-full rounded-xl p-8 transition-all duration-300 hover:shadow-2xl hover:shadow-green-500/20 overflow-hidden">
+                    <div class="mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                        </svg>
+                    </div>
+
+                    <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80" alt="FPGA Technology" class="w-full h-48 object-cover rounded-lg mb-4">
+
+                    <h3 class="text-2xl font-bold mb-3 text-white">FPGA Acceleration</h3>
+                    <p class="text-gray-300 mb-4 leading-relaxed text-sm">
+                        Hardware-level optimization delivers up to 100x faster compilation and code analysis compared to traditional CPU-based editors.
+                    </p>
+                    <ul class="space-y-2">
+                        <li class="flex items-center gap-2 text-sm text-green-400">
+                            <div class="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+                            Real-time syntax checking
+                        </li>
+                        <li class="flex items-center gap-2 text-sm text-green-400">
+                            <div class="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+                            Instant code compilation
+                        </li>
+                        <li class="flex items-center gap-2 text-sm text-green-400">
+                            <div class="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+                            Parallel processing power
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card-3d" data-card="3">
+                <div class="card-3d-inner bg-black border-green-400/30 hover:border-green-400 border-2 w-full rounded-xl p-8 transition-all duration-300 hover:shadow-2xl hover:shadow-green-500/20 overflow-hidden">
+                    <div class="mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+
+                    <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80" alt="High Performance Computing" class="w-full h-48 object-cover rounded-lg mb-4">
+
+                    <h3 class="text-2xl font-bold mb-3 text-white">Lightning Performance</h3>
+                    <p class="text-gray-300 mb-4 leading-relaxed text-sm">
+                        FPGA + Cloud = unmatched speed. Edit massive codebases, run complex builds, and debug in real-time without lag.
+                    </p>
+                    <ul class="space-y-2">
+                        <li class="flex items-center gap-2 text-sm text-green-400">
+                            <div class="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+                            Handle large projects
+                        </li>
+                        <li class="flex items-center gap-2 text-sm text-green-400">
+                            <div class="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+                            Instant IDE response
+                        </li>
+                        <li class="flex items-center gap-2 text-sm text-green-400">
+                            <div class="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+                            Low-latency remote coding
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Impact Statistics Section with Infinite Scroll -->
+        <div class="mb-20">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-4 text-white">
+                The Power of <span class="text-green-400">FPGA & Cloud</span>
+            </h2>
+            <p class="text-center text-gray-400 mb-12 max-w-2xl mx-auto">
+                Revolutionary technology that transforms development performance
+            </p>
+            <div class="overflow-hidden">
+                <div id="stats-scroll" class="flex gap-6" style="width: max-content;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Wave Canvas Effect
+    const canvas = document.getElementById('wave-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+        const parent = canvas.parentElement;
+        const rect = parent.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+
+        // Make the canvas CSS match the parent size and create a backing buffer scaled by DPR
+        canvas.style.width = rect.width + 'px';
+        canvas.style.height = rect.height + 'px';
+        canvas.width = Math.round(rect.width * dpr);
+        canvas.height = Math.round(rect.height * dpr);
+
+        // Scale drawing operations so 1 unit = 1 CSS pixel
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    // Initial resize and on-window-resize
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    let time = 0;
+    const waves = [
+        { amplitude: 40, frequency: 0.02, speed: 0.03, yOffset: 0.4, color: 'rgba(34, 197, 94, 0.4)' },
+        { amplitude: 50, frequency: 0.015, speed: 0.02, yOffset: 0.5, color: 'rgba(34, 197, 94, 0.3)' },
+        { amplitude: 35, frequency: 0.025, speed: 0.025, yOffset: 0.6, color: 'rgba(34, 197, 94, 0.2)' },
+        { amplitude: 45, frequency: 0.018, speed: 0.028, yOffset: 0.7, color: 'rgba(34, 197, 94, 0.15)' },
+    ];
+
+    function drawWaves() {
+        // Clear using CSS pixel coordinates; because of setTransform this clears correctly
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        waves.forEach(wave => {
+            ctx.beginPath();
+
+            const cssWidth = canvas.width / (window.devicePixelRatio || 1);
+            const cssHeight = canvas.height / (window.devicePixelRatio || 1);
+
+            for (let x = 0; x <= cssWidth; x++) {
+                const y = cssHeight * wave.yOffset +
+                    Math.sin(x * wave.frequency + time * wave.speed) * wave.amplitude;
+
+                if (x === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+
+            ctx.lineTo(cssWidth, cssHeight);
+            ctx.lineTo(0, cssHeight);
+            ctx.closePath();
+
+            const gradient = ctx.createLinearGradient(0, cssHeight * wave.yOffset - 50, 0, cssHeight);
+            gradient.addColorStop(0, wave.color);
+            gradient.addColorStop(1, 'rgba(34, 197, 94, 0)');
+
+            ctx.fillStyle = gradient;
+            ctx.fill();
+        });
+
+        time += 1;
+        requestAnimationFrame(drawWaves);
+    }
+
+    drawWaves();
+
+    // Typewriter effect for title
+    const titleWords = [
+        { text: "Falcon", className: "text-green-400" },
+        { text: "Editor", className: "text-white" }
+    ];
+
+    let titleIndex = 0;
+    let titleText = '';
+    const titleElement = document.getElementById('title');
+
+    function typeTitle() {
+        if (titleIndex < titleWords.length) {
+            const word = titleWords[titleIndex];
+            const targetText = word.text;
+
+            if (titleText.length < targetText.length) {
+                titleText += targetText[titleText.length];
+
+                const span = document.createElement('span');
+                span.className = word.className + ' opacity-100 transition-opacity duration-300';
+                span.textContent = titleText;
+
+                titleElement.innerHTML = '';
+                for (let i = 0; i <= titleIndex; i++) {
+                    const s = document.createElement('span');
+                    s.className = titleWords[i].className + ' opacity-100 transition-opacity duration-300';
+                    s.textContent = i < titleIndex ? titleWords[i].text : titleText;
+                    titleElement.appendChild(s);
+                }
+
+                setTimeout(typeTitle, 100);
+            } else {
+                titleText = '';
+                titleIndex++;
+                setTimeout(typeTitle, 200);
+            }
+        }
+    }
+
+    typeTitle();
+
+    // Rotating typewriter effect
+    const rotatingWords = ["Smarter", "Faster", "Better"];
+    let rotatingIndex = 0;
+    let rotatingText = '';
+    let isDeleting = false;
+    const rotatingElement = document.getElementById('rotating-text');
+
+    function typeRotating() {
+        const currentWord = rotatingWords[rotatingIndex];
+
+        if (!isDeleting) {
+            if (rotatingText.length < currentWord.length) {
+                rotatingText = currentWord.slice(0, rotatingText.length + 1);
+                rotatingElement.textContent = rotatingText;
+                setTimeout(typeRotating, 100);
+            } else {
+                setTimeout(() => {
+                    isDeleting = true;
+                    typeRotating();
+                }, 2000);
+            }
+        } else {
+            if (rotatingText.length > 0) {
+                rotatingText = currentWord.slice(0, rotatingText.length - 1);
+                rotatingElement.textContent = rotatingText;
+                setTimeout(typeRotating, 50);
+            } else {
+                isDeleting = false;
+                rotatingIndex = (rotatingIndex + 1) % rotatingWords.length;
+                typeRotating();
+            }
+        }
+    }
+
+    typeRotating();
+
+    // 3D Card Effect
+    const cards = document.querySelectorAll('.card-3d');
+    cards.forEach(card => {
+        const inner = card.querySelector('.card-3d-inner');
+        let animationFrameId = null;
+
+        card.addEventListener('mousemove', (e) => {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+
+            animationFrameId = requestAnimationFrame(() => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = ((y - centerY) / centerY) * -25;
+                const rotateY = ((x - centerX) / centerX) * 25;
+
+                inner.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+            });
+        });
+
+        card.addEventListener('mouseleave', () => {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            inner.style.transition = 'transform 0.3s ease-out';
+            inner.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+            setTimeout(() => {
+                inner.style.transition = 'none';
+            }, 300);
+        });
+    });
+
+    // Infinite scrolling statistics
+    const statistics = [
+        {
+            value: "100x",
+            description: "Studies have shown 100x faster compilation because of FPGA acceleration"
+        },
+        {
+            value: "90%",
+            description: "Studies have shown 90% reduction in hardware costs because of cloud computing"
+        },
+        {
+            value: "24/7",
+            description: "Studies have shown 24/7 global access from any device because of cloud computing"
+        },
+        {
+            value: "<10ms",
+            description: "Studies have shown <10ms response time for code analysis because of FPGA acceleration"
+        }
+    ];
+
+    const statsScroll = document.getElementById('stats-scroll');
+    const allStats = [...statistics, ...statistics, ...statistics];
+
+    allStats.forEach(stat => {
+        const card = document.createElement('div');
+        card.className = 'flex-shrink-0 w-[300px] md:w-[350px] bg-black border-2 border-green-400/30 hover:border-green-400 rounded-xl p-6 text-center transition-colors duration-300';
+        card.innerHTML = `
+        <div class="text-5xl font-bold text-green-400 mb-4">${stat.value}</div>
+        <p class="text-gray-300 text-sm leading-relaxed">${stat.description}</p>
+      `;
+        statsScroll.appendChild(card);
+    });
+
+    let statsScrollPosition = 0;
+    function scrollStats() {
+        statsScrollPosition -= 1;
+        statsScroll.style.transform = `translateX(${statsScrollPosition}px)`;
+
+        if (Math.abs(statsScrollPosition) >= statsScroll.scrollWidth / 3) {
+            statsScrollPosition = 0;
+        }
+
+        requestAnimationFrame(scrollStats);
+    }
+
+    scrollStats();
+</script>
+</body>
+</html>

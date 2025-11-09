@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Falcon Desktop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen">
+    <img src="darklogo.png" class="w-24 h-24 mb-4" />
+    <h1 class="text-4xl font-extrabold mb-6">Falcon</h1>
+    <button id="open-folder" class="bg-green-500 text-white px-6 py-3 rounded-xl font-bold mb-4">Open Folder</button>
+    <div id="selected-folder" class="text-green-400 font-mono mb-4" style="display:none;"></div>
+    <!-- Remove the Git repo URL input and Clone from Git button -->
+    <div id="status" class="mt-2"></div>
+    <!-- FPGA Toolchain Setup (Recommended) -->
+    <div id="apio-toolchain-banner" style="background:#23272e; color:#ffb86c; border:1px solid #ffb86c; border-radius:8px; padding:1.2rem 2rem; max-width:700px; margin:2rem auto 0 auto; text-align:center;">
+      <div style="width:100%;">
+        <b>FPGA Toolchain Setup (Required for bitstream generation):</b>
+        <span>Install <a href="https://github.com/FPGAwars/apio" target="_blank" style="color:#ffb86c;text-decoration:underline;">Apio</a> for the iCE40 toolchain:</span>
+        <div style="display:flex;align-items:center;justify-content:center;gap:1em;">
+          <pre id="apio-toolchain-cmd" style="background:#181c22;color:#fff;padding:0.5em 1em;border-radius:4px;display:block;margin:1em 0;overflow-x:auto;">pip3 install --upgrade pip && pip3 install apio && apio install --all</pre>
+          <button id="copy-apio-toolchain-cmd" style="background:#23272e;color:#ffb86c;border:1px solid #ffb86c;border-radius:6px;padding:0.5em 1.2em;cursor:pointer;font-size:1rem;transition:background 0.2s;">Copy</button>
+        </div>
+      </div>
+    </div>
+    <footer style="background:#23272e; color:#888; text-align:center; font-size:0.95rem; padding:1.2rem 2.5rem; border-radius:8px; border:1px solid #22262c; max-width:600px; margin:2rem auto;">
+      Note: Currently, this tool only supports bitstream generation for <b>Lattice iCE40 FPGAs</b>.
+    </footer>
+    <script src="renderer.js"></script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+  const copyBtn = document.getElementById('copy-apio-toolchain-cmd');
+  const pre = document.getElementById('apio-toolchain-cmd');
+  if (copyBtn && pre) {
+    copyBtn.onclick = () => {
+      navigator.clipboard.writeText(pre.textContent.trim());
+      copyBtn.textContent = 'Copied!';
+      setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500);
+    };
+  }
+});
+</script>
+  </body>
+</html>

@@ -1,0 +1,4 @@
+html, body, #__next { height: 100%; }
+body { margin: 0; }
+/* You can place global overrides here. Tailwind is loaded via CDN in Head */
+

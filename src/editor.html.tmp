@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>falcon Editor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Use UMD CDN builds for xterm and the fit addon (safer than relative node_modules paths in the renderer) -->
+    <link rel="stylesheet" href="https://unpkg.com/xterm@5.3.0/css/xterm.css" />
+    <script src="https://unpkg.com/xterm@5.3.0/lib/xterm.js"></script>
+    <script src="https://unpkg.com/xterm-addon-fit@0.7.0/lib/addon-fit.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+    <style>
+      html, body {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: 'JetBrains Mono', monospace;
+        background: #1e1e1e;
+        color: #d4d4d4;
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+      }
+      #falcon-app {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        width: 100vw;
+      }
+      .top-bar {
+        height: 2.5rem;
+        background: #23272e;
+        color: #7fff7f;
+        display: flex;
+        align-items: center;
+        padding-left: 1.5rem;
+        font-size: 1.2rem;
+        font-weight: bold;
+        letter-spacing: 0.05em;
+        border-bottom: 1px solid #22262c;
+        user-select: none;
+      }
+      .main-area {
+        flex: 1;
+        display: flex;
+        min-height: 0;
+        min-width: 0;
+      }
+      #sidebar {
+        width: 240px;
+        min-width: 180px;
+        max-width: 320px;
+        background: #23272e;
+        border-right: 1px solid #22262c;
+        overflow-y: auto;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .sidebar-header {
+        padding: 1rem 1rem 0.5rem 1rem;
+        font-weight: bold;
+        color: #7fff7f;
+        font-size: 1rem;
+        letter-spacing: 0.03em;
+      }
+      #file-list {
+        flex: 1;
+        padding: 0.5rem 0.5rem 1rem 1rem;
+        margin: 0;
+        list-style: none;
+        overflow-x: hidden;
+      }
+      #file-list li {
+        transition: background 0.2s, color 0.2s;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+        padding-right: 8px;
+        border-radius: 4px;
+        user-select: none;
+        cursor: pointer;
+        position: relative;
+      }
+      #file-list li:hover {
+        background: #31363f;
+        color: #7fff7f;
+      }
+      #file-list li.selected {
+        background: #232a36;
+        color: #00ff99;
+        font-weight: bold;
+      }
+      #file-list li.dragging {
+        opacity: 0.5;
+        background: #4ecdc4;
+      }
+      #file-list li.drag-over {
+        background: #4ecdc4;
+        border: 2px dashed #7fff7f;
+      }
+      .context-menu {
+        position: fixed;
+        background: #23272e;
+        border: 1px solid #22262c;
+        border-radius: 6px;
+        box-shadow: 0 4px 24px #000a;
+        padding: 0.5rem 0;
+        z-index: 10000;
+        min-width: 150px;
+        display: none;
+      }
+      .context-menu-item {
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        color: #d4d4d4;
+        font-size: 0.9rem;
+        transition: background 0.2s;
+      }
+      .context-menu-item:hover {
+        background: #31363f;
+        color: #7fff7f;
+      }
+      .context-menu-separator {
+        height: 1px;
+        background: #22262c;
+        margin: 0.25rem 0;
+      }
+      .context-menu-target {
+        background: #4ecdc4 !important;
+        color: #1e2127 !important;
+        border: 2px solid #7fff7f !important;
+      }
+      .tab-bar {
+        display: flex;
+        align-items: center;
+        background: #23272e;
+        border-bottom: 1px solid #22262c;
+        height: 2.5rem;
+        padding-left: 0.5rem;
+        overflow-x: auto;
+        min-width: 0;
+      }
+      .tab {
+        display: flex;
+        align-items: center;
+        padding: 0 1rem;
+        height: 2.5rem;
+        color: #d4d4d4;
+        background: none;
+        border: none;
+        border-right: 1px solid #22262c;
+        cursor: pointer;
+        font-size: 1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 180px;
+        transition: background 0.2s, color 0.2s;
+      }
+      .tab.active {
+        background: #1e1e1e;
+        color: #7fff7f;
+        font-weight: bold;
+      }
+      .tab .close {
+        margin-left: 0.5rem;
+        color: #888;
+        font-size: 1.1em;
+        cursor: pointer;
+      }
+      .tab .close:hover {
+        color: #ff5c5c;
+      }
+      #editor {
+        height: 100%;
+        width: 100%;
+        min-width: 0;
+        min-height: 0;
+      }
+      .editor-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        min-height: 0;
+        background: #1e1e1e;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- File content unchanged from original to keep structure intact -->
+  </body>
+</html>
+
